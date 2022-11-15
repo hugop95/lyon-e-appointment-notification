@@ -48,6 +48,7 @@ interface Config {
   soundPath: string
   jsessionId: string;
   dwrSessionId: string;
+  maxDaysAfterToday: number;
 }
 
 export class Main {
@@ -81,13 +82,13 @@ export class Main {
       alreadyWarnedDates: {}
     },
     {
-      name: "5eme - Vieux lyon",
+      name: "5eme - Annexe du Vieux lyon",
       0: "MA5A",
       1: "355",
       alreadyWarnedDates: {}
     },
     {
-      name: "5eme - pt du jour",
+      name: "5eme - Point du jour",
       0: "MA5",
       1: "352",
       alreadyWarnedDates: {}
@@ -111,7 +112,7 @@ export class Main {
       alreadyWarnedDates: {}
     },
     {
-      name: "9eme",
+      name: "9eme - Annexe Duchère",
       0: "MA9D",
       1: "339",
       alreadyWarnedDates: {}
@@ -183,7 +184,7 @@ export class Main {
 
 
     let hasMatch: boolean
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < Math.max(this._config.maxDaysAfterToday, 90); i++) {
       const mapKey: string = currentDate.toISOString();
       if (city.alreadyWarnedDates[mapKey]) {
         continue;
