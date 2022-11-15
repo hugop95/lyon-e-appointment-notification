@@ -1,0 +1,27 @@
+{
+  "name": "lyon-e-appointment-notification",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "scripts": {
+    "build_and_run": "npm run build && npm run run",
+    "run": "node ./dist/main.js",
+    "build": "tsc",
+    "lint": "tslint server.ts"
+  },
+  "author": "Hugo PRUNAUX",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.1.3",
+    "moment": "^2.29.0",
+    "moment-duration-format": "^2.3.2",
+    "sound-play": "^1.1.0",
+    "tslint": "^5.20.1",
+    "typescript": "4.8.4"
+  },
+  "devDependencies": {
+    "@types/node": "16.11.45",
+    "install": "^0.13.0",
+    "jest": "^28.1.3",
+    "npm": "^6.13.6"
+  }
+}

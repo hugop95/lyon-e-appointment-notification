@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "dist/",
+    "allowUnreachableCode": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "incremental": true,
+    "noImplicitThis": true,
+    "types": ["node", "jest"],
+    "lib": ["esnext", "es2020.string"],
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "target": "es6",
+    "module": "commonjs",
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
