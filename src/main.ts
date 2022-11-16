@@ -183,23 +183,23 @@ export class Main {
     const dates: Array<Date> = dateArrays
     .map((d) => moment(d, "yyyy-MM-DD").startOf("day").toDate());
     let currentDate: Date = moment().startOf("day").toDate();
-    let hasMatch: boolean
+    let hasMatchForAtLeastOneLocation: boolean
     for (let i = 0; i < Math.max(this._config.maxDaysAfterToday, 90); i++) {
       const mapKey: string = currentDate.toISOString();
       if (city.alreadyWarnedDates[mapKey]) {
         continue;
       }
-      const match: boolean = !dates
+      const hasMatch: boolean = !dates
       .map((d) => d.getTime())
       .includes(currentDate.getTime());
-      if (match) {
-        hasMatch = true;
+      if (hasMatch) {
+        hasMatchForAtLeastOneLocation = true;
         city.alreadyWarnedDates[mapKey] = true;
-        console.log("Found free date " + moment(currentDate).format("DD/MM/yyyy") + " for city " + city.name);
+        console.log("Free date: " + moment(currentDate).format("DD/MM/yyyy") + ", location: " + city.name);
       }
       currentDate = moment(currentDate).add(26, "h").startOf("day").toDate();
     }
-    if (hasMatch && this._config.soundPath) {
+    if (hasMatchForAtLeastOneLocation && this._config.soundPath) {
       sound.play(this._config.soundPath)
     }
     // await this.postUrl(RequestEnum.SET_JAVASCRIPT_GLOBAL_VARIABLE, {});
@@ -261,6 +261,7 @@ export class Main {
         return resolve([result.data, new Date(result.headers.date)]);
       }).catch((error: AxiosError) => {
         console.error(error.message);
+        process.exit(1);
       });
     });
   }
