@@ -36,11 +36,25 @@ interface PostData extends RelevantData, DefaultInterface {
   "c0-param1": string;
 }
 
-interface City {
+interface CityProps {
   name: string;
   0: string;
   1: string;
-  alreadyWarnedDates: { [key: string]: boolean }
+}
+
+class Location {
+  public readonly alreadyWarnedDates: { [key: string]: boolean }
+  public readonly name: string;
+  public readonly 0: string;
+  public readonly 1: string;
+  public cachedDate: Date;
+
+  constructor(props: CityProps) {
+    this.alreadyWarnedDates = {};
+    this.name = props.name;
+    this["0"] = props["0"];
+    this["1"] = props["1"];
+  }
 }
 
 interface Config {
@@ -56,73 +70,63 @@ export class Main {
   private _batchId: number = 0;
   private _scriptSessionId: string = "AfCfJpHrq8VhW8mJDu6sJLLGHfZXwnkCiho/EtfDiho-76HB6fhu2";
   private _config: Config;
-  private static _CITIES: Array<City> = [
-    {
+  private _latestRequestCachedDate: Date;
+  private static _CITIES: Array<Location> = [
+    new Location({
       name: "1er",
       0: "MA1",
-      1: "328",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "328"
+    }),
+    new Location({
       name: "2eme",
       0: "MA2",
-      1: "330",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "330"
+    }),
+    new Location({
       name: "3eme",
       0: "MA3",
-      1: "332",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "332"
+    }),
+    new Location({
       name: "4eme",
       0: "MA4",
-      1: "350",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "350"
+    }),
+    new Location({
       name: "5eme - Annexe du Vieux lyon",
       0: "MA5A",
-      1: "355",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "355"
+    }),
+    new Location({
       name: "5eme - Point du jour",
       0: "MA5",
-      1: "352",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "352"
+    }),
+    new Location({
       name: "6eme",
       0: "MA6",
-      1: "348",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "348"
+    }),
+    new Location({
       name: "7eme",
       0: "MA7",
-      1: "345",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "345"
+    }),
+    new Location({
       name: "8eme",
       0: "MA8",
-      1: "347",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "347"
+    }),
+    new Location({
       name: "9eme - Annexe Duchère",
       0: "MA9D",
-      1: "339",
-      alreadyWarnedDates: {}
-    },
-    {
+      1: "339"
+    }),
+    new Location({
       name: "9eme - Vaise",
       0: "MA9",
-      1: "334",
-      alreadyWarnedDates: {}
-    }
+      1: "334"
+    })
   ];
 
 
@@ -142,7 +146,7 @@ export class Main {
     while (true) {
       for (const city of Object.values(Main._CITIES)) {
         await this._analyzeCity(city);
-        await Main._waitSeconds(Math.max(Math.min(1, this._config.delaySeconds || 0), -Infinity));
+        await Main._waitSeconds(Math.max(1, this._config.delaySeconds || 0));
       }
     }
   }
@@ -153,7 +157,7 @@ export class Main {
     console.log("Config loaded")
   }
 
-  private async _analyzeCity(city: City) {
+  private async _analyzeCity(city: Location) {
     // const cleanFromSite = await this.postUrl(RequestEnum.CLEAN_FORM_FROM_SITE, {});
     // // console.log(cleanFromSite);
     // const numberOfMonth = await this.postUrl(RequestEnum.NUMBER_OF_MONTH, {
@@ -167,22 +171,18 @@ export class Main {
     //   "c0-param0": "string:" + city["0"],
     //   "c0-param1": "string:" + city["1"]
     // });
-    const closeDaysList: string = await this.postUrl(RequestEnum.GET_CLOSED_DAYS_LIST, {
+    const [closeDaysListString, cachedDate]: [string, Date] = await this.postUrl(RequestEnum.GET_CLOSED_DAYS_LIST, {
       "c0-param0": "string:" + city["0"],
       "c0-param1": "string:" + city["1"]
     });
-    const match = closeDaysList.match(/dwr\.engine\.remote\.handleCallback\("\d*","\d*",\[(.*)]\)/)[1];
+    city.cachedDate = cachedDate;
+    const match = closeDaysListString.match(/dwr\.engine\.remote\.handleCallback\("\d*","\d*",\[(.*)]\)/)[1];
     const dateArrays: Array<string> = match
     .replaceAll("\"", "")
     .split(",");
-    let dates: Array<Date> = dateArrays
+    const dates: Array<Date> = dateArrays
     .map((d) => moment(d, "yyyy-MM-DD").startOf("day").toDate());
     let currentDate: Date = moment().startOf("day").toDate();
-    if (dates) {
-
-    }
-
-
     let hasMatch: boolean
     for (let i = 0; i < Math.max(this._config.maxDaysAfterToday, 90); i++) {
       const mapKey: string = currentDate.toISOString();
@@ -213,7 +213,7 @@ export class Main {
     })
   }
 
-  public postUrl(requestEnum: RequestEnum, data: RelevantData): Promise<any> {
+  public postUrl(requestEnum: RequestEnum, data: RelevantData): Promise<[any, Date]> {
     let coParam0: string = data["c0-param0"];
     let c0Param1: string = data["c0-param1"];
     switch (requestEnum) {
@@ -258,7 +258,7 @@ export class Main {
             Cookie: "JSESSIONID=" + this._config.jsessionId + "; DWRSESSIONID=" + this._config.dwrSessionId
           }
         }).then((result: AxiosResponse) => {
-        return resolve(result.data);
+        return resolve([result.data, new Date(result.headers.date)]);
       }).catch((error: AxiosError) => {
         console.error(error.message);
       });
